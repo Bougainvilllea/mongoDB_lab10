@@ -1,17 +1,27 @@
 <!DOCTYPE html>
+<!-- Объявление типа документа как HTML5 -->
 <html lang="ru">
+<!-- Начало HTML-документа с указанием языка (русский) -->
 <head>
+  <!-- Начало секции заголовка документа -->
   <meta charset="UTF-8">
+  <!-- Указание кодировки символов (UTF-8) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Настройка viewport для корректного отображения на мобильных устройствах -->
   <title>Просмотр статьи</title>
+  <!-- Заголовок страницы -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Подключение библиотеки Font Awesome для иконок -->
   <style>
+    /* Начало секции CSS стилей */
     body {
       font-family: Arial, sans-serif;
       max-width: 800px;
       margin: 0 auto;
       padding: 20px;
     }
+    /* Стили для основного контейнера страницы */
+    
     .article-container {
       border: 1px solid #ddd;
       padding: 20px;
@@ -19,54 +29,76 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
+    /* Стили для контейнера статьи */
+    
     .article-title {
       margin-top: 0;
       color: #2c3e50;
     }
+    /* Стили для заголовка статьи */
+    
     .article-meta {
       color: #7f8c8d;
       font-size: 14px;
       margin-bottom: 15px;
     }
+    /* Стили для мета-информации статьи (авторы, дата и т.д.) */
+    
     .article-content {
       line-height: 1.6;
       margin-bottom: 20px;
     }
+    /* Стили для содержимого статьи */
+    
     .tags {
       display: flex;
       flex-wrap: wrap;
       gap: 5px;
       margin: 10px 0;
     }
+    /* Стили для контейнера тегов */
+    
     .tag {
       background: #e0f7fa;
       padding: 3px 8px;
       border-radius: 4px;
       font-size: 12px;
     }
+    /* Стили для отдельного тега */
+    
     .reviews-title {
       margin-top: 30px;
       border-bottom: 1px solid #ddd;
       padding-bottom: 5px;
     }
+    /* Стили для заголовка секции рецензий */
+    
     .review {
       border: 1px solid #eee;
       padding: 10px;
       margin: 10px 0;
       border-radius: 4px;
     }
+    /* Стили для отдельной рецензии */
+    
     .review-meta {
       font-size: 14px;
       color: #7f8c8d;
       margin-bottom: 5px;
     }
+    /* Стили для мета-информации рецензии */
+    
     .rating {
       color: #f39c12;
       font-weight: bold;
     }
+    /* Стили для отображения рейтинга */
+    
     .actions {
       margin-top: 20px;
     }
+    /* Стили для контейнера кнопок действий */
+    
     .btn {
       padding: 8px 15px;
       border-radius: 4px;
@@ -76,32 +108,46 @@
       display: inline-block;
       margin-right: 10px;
     }
+    /* Базовые стили для кнопок */
+    
     .back-btn {
       background: #3498db;
       color: white;
     }
+    /* Стили для кнопки "Назад" */
+    
     .edit-btn {
       background: #2ecc71;
       color: white;
     }
+    /* Стили для кнопки "Редактировать" */
+    
     .delete-btn {
       background: #e74c3c;
       color: white;
     }
+    /* Стили для кнопки "Удалить" */
+    
     .add-review-form {
       margin-top: 30px;
       padding: 20px;
       border: 1px solid #ddd;
       border-radius: 8px;
     }
+    /* Стили для формы добавления рецензии (не используется в текущей версии) */
+    
     .form-group {
       margin-bottom: 15px;
     }
+    /* Стили для группы элементов формы */
+    
     label {
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
     }
+    /* Стили для меток формы */
+    
     input, textarea, select {
       width: 100%;
       padding: 8px;
@@ -109,9 +155,13 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
+    /* Общие стили для элементов ввода */
+    
     textarea {
       height: 100px;
     }
+    /* Специфические стили для текстовой области */
+    
     .submit-btn {
       background: #27ae60;
       color: white;
@@ -119,46 +169,73 @@
       padding: 10px 15px;
       cursor: pointer;
     }
+    /* Стили для кнопки отправки формы */
+    
     .submit-btn:hover {
       background: #219653;
     }
+    /* Стили для кнопки отправки формы при наведении */
+    
     .new-article-form {
       margin-top: 20px;
     }
+    /* Стили для формы создания новой статьи */
   </style>
+  <!-- Конец секции CSS стилей -->
 </head>
+<!-- Конец секции заголовка документа -->
 <body>
+  <!-- Начало тела документа -->
   <div id="article-container" class="article-container"></div>
+  <!-- Контейнер для отображения статьи (заполняется динамически) -->
+  
   <div id="new-article-form" class="new-article-form" style="display: none;">
+    <!-- Форма для создания новой статьи (изначально скрыта) -->
     <h2>Создать новую статью</h2>
+    <!-- Заголовок формы -->
     <form id="articleForm">
+      <!-- Форма для ввода данных статьи -->
       <div class="form-group">
         <label for="title">Название:</label>
         <input type="text" id="title" required>
       </div>
+      <!-- Поле для ввода названия статьи -->
+      
       <div class="form-group">
         <label for="authors">Авторы (разделяйте запятыми):</label>
         <input type="text" id="authors" required>
       </div>
+      <!-- Поле для ввода авторов (разделяются запятыми) -->
+      
       <div class="form-group">
         <label for="content">Содержание:</label>
         <textarea id="content" required></textarea>
       </div>
+      <!-- Текстовая область для содержимого статьи -->
+      
       <div class="form-group">
         <label for="publishDate">Дата публикации:</label>
         <input type="date" id="publishDate" required>
       </div>
+      <!-- Поле для выбора даты публикации -->
+      
       <button type="submit" class="submit-btn">Сохранить</button>
+      <!-- Кнопка отправки формы -->
     </form>
   </div>
   
   <div class="actions">
+    <!-- Контейнер для кнопок действий -->
     <a href="/" class="btn back-btn"><i class="fas fa-arrow-left"></i> Назад</a>
+    <!-- Кнопка "Назад" с иконкой -->
     <button id="editBtn" class="btn edit-btn" style="display: none;"><i class="fas fa-edit"></i> Редактировать</button>
+    <!-- Кнопка "Редактировать" (изначально скрыта) -->
     <button id="deleteBtn" class="btn delete-btn" style="display: none;"><i class="fas fa-trash"></i> Удалить</button>
+    <!-- Кнопка "Удалить" (изначально скрыта) -->
   </div>
 
   <script>
+    // Начало JavaScript кода
     // Получаем ID статьи из URL
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
@@ -214,8 +291,6 @@
           alert(`Ошибка: ${err.message}`);
         }
       });
-      
-      
     }
     
     // Загрузка статьи
@@ -300,5 +375,8 @@
       articleContainer.innerHTML = '<p>Статья не найдена</p>';
     }
   </script>
+  <!-- Конец JavaScript кода -->
 </body>
+<!-- Конец тела документа -->
 </html>
+<!-- Конец HTML-документа -->
