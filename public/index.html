@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Научный журнал</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .search-panel {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .articles-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+    .article-card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .article-title {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .article-meta {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    .tag {
+      background: #e0f7fa;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .article-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .action-btn {
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .view-btn {
+      background: #2196F3;
+      color: white;
+    }
+    .delete-btn {
+      background: #f44336;
+      color: white;
+    }
+    .add-btn {
+      background: #ff9800;
+      color: white;
+    }
+    .top-articles-btn {
+      background: #9c27b0;
+      color: white;
+    }
+    .date-range {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .date-input {
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Электронный научный журнал</h1>
+  
+  <div class="search-panel">
+    <div class="search-row">
+      <input type="text" id="titleSearch" placeholder="Поиск по названию">
+      <button id="searchTitleBtn">Найти</button>
+    </div>
+    
+    <div class="search-row">
+      <select id="authorSelect">
+        <option value="">Все авторы</option>
+      </select>
+      <button id="searchAuthorBtn">Фильтр по автору</button>
+    </div>
+    
+    <div class="search-row date-range">
+      <input type="text" class="date-input" id="startDate" placeholder="Дата начала">
+      <input type="text" class="date-input" id="endDate" placeholder="Дата окончания">
+      <button id="searchDateBtn">Поиск по дате</button>
+    </div>
+    
+    <div class="search-row">
+      <button id="topArticlesBtn" class="top-articles-btn">Топ статей</button>
+      <button id="addArticleBtn" class="add-btn">Добавить статью</button>
+      <button id="resetBtn">Сбросить фильтры</button>
+    </div>
+  </div>
+  
+  <div id="loading" style="display: none;">Загрузка данных...</div>
+  
+  <div class="articles-list" id="articlesList"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+  <script>
+    // DOM элементы
+    const titleSearch = document.getElementById('titleSearch');
+    const authorSelect = document.getElementById('authorSelect');
+    const articlesList = document.getElementById('articlesList');
+    const loading = document.getElementById('loading');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    
+    // Инициализация календаря
+    flatpickr(startDate, {
+      locale: "ru",
+      dateFormat: "Y-m-d",
+    });
+    
+    flatpickr(endDate, {
+      locale: "ru",
+      dateFormat: "Y-m-d",
+    });
+    
+    // Загрузка всех статей
+    async function loadArticles() {
+      try {
+        showLoading(true);
+        const response = await fetch('/api/articles');
+        const articles = await response.json();
+        displayArticles(articles.data || articles);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+    
+    // Поиск статей по названию и автору
+    async function searchArticles() {
+      try {
+        showLoading(true);
+        const title = titleSearch.value.trim();
+        const author = authorSelect.value;
+        
+        let url = '/api/articles/search?';
+        if (title) url += `title=${encodeURIComponent(title)}&`;
+        if (author) url += `author=${encodeURIComponent(author)}`;
+        
+        const response = await fetch(url);
+        const articles = await response.json();
+        displayArticles(articles);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+    
+    // Поиск статей по дате
+    async function searchByDate() {
+      try {
+        showLoading(true);
+        const start = startDate.value;
+        const end = endDate.value;
+        
+        if (!start || !end) {
+          alert('Пожалуйста, выберите обе даты');
+          return;
+        }
+        
+        const response = await fetch(`/api/articles/search?startDate=${start}&endDate=${end}`);
+        const articles = await response.json();
+        displayArticles(articles);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+    
+    // Загрузка топ статей
+    async function loadTopArticles() {
+      try {
+        showLoading(true);
+        const response = await fetch('/api/articles/top');
+        const articles = await response.json();
+        displayArticles(articles);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+    
+    // Отображение статей
+    function displayArticles(articles) {
+      if (!articles || articles.length === 0) {
+        articlesList.innerHTML = '<p>Статьи не найдены</p>';
+        return;
+      }
+      
+      articlesList.innerHTML = articles.map(article => `
+        <div class="article-card">
+          <h3 class="article-title">${article.title}</h3>
+          <div class="article-meta">
+            <p><strong>Авторы:</strong> ${article.authors.join(', ')}</p>
+            <p><strong>Дата:</strong> ${new Date(article.publishDate).toLocaleDateString()}</p>
+            <p><strong>Рейтинг:</strong> ${calculateAverageRating(article.reviews)}</p>
+            <p><strong>Комментарии:</strong> ${article.reviews ? article.reviews.length : 0}</p>
+          </div>
+          <div class="tags">
+            ${article.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+          </div>
+          <div class="article-actions">
+            <button class="action-btn view-btn" onclick="viewArticle('${article._id}')">
+              <i class="fas fa-eye"></i> Просмотр
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteArticle('${article._id}')">
+              <i class="fas fa-trash"></i> Удалить
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Расчет среднего рейтинга
+    function calculateAverageRating(reviews) {
+      if (!reviews || reviews.length === 0) return 'Нет оценок';
+      const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+      return (sum / reviews.length).toFixed(1);
+    }
+    
+    // Просмотр статьи
+    function viewArticle(articleId) {
+      window.location.href = `/article.html?id=${articleId}`;
+    }
+    
+    // Удаление статьи
+    async function deleteArticle(articleId) {
+      if (!confirm('Вы уверены, что хотите удалить эту статью?')) return;
+      
+      try {
+        showLoading(true);
+        const response = await fetch(`/api/articles/${articleId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          loadArticles();
+        } else {
+          const error = await response.json();
+          throw new Error(error.error || 'Ошибка при удалении статьи');
+        }
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+    
+    // Создание новой статьи
+    function addNewArticle() {
+      window.location.href = '/article.html?new=true';
+    }
+    
+    // Загрузка авторов
+    async function loadAuthors() {
+      try {
+        const response = await fetch('/api/articles');
+        const articles = await response.json();
+        const data = articles.data || articles;
+        
+        // Получаем уникальных авторов
+        const authors = [...new Set(data.flatMap(article => article.authors))];
+        
+        // Заполняем выпадающий список
+        authors.forEach(author => {
+          const option = document.createElement('option');
+          option.value = author;
+          option.textContent = author;
+          authorSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Ошибка загрузки авторов:', err);
+      }
+    }
+    
+    // Управление состоянием загрузки
+    function showLoading(isLoading) {
+      loading.style.display = isLoading ? 'block' : 'none';
+    }
+    
+    // Отображение ошибок
+    function showError(message) {
+      articlesList.innerHTML = `<p style="color: red;">Ошибка: ${message}</p>`;
+    }
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      loadArticles();
+      loadAuthors();
+      
+      // Обработчики событий
+      document.getElementById('searchTitleBtn').addEventListener('click', searchArticles);
+      document.getElementById('searchAuthorBtn').addEventListener('click', searchArticles);
+      document.getElementById('searchDateBtn').addEventListener('click', searchByDate);
+      document.getElementById('topArticlesBtn').addEventListener('click', loadTopArticles);
+      document.getElementById('addArticleBtn').addEventListener('click', addNewArticle);
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        titleSearch.value = '';
+        authorSelect.value = '';
+        startDate.value = '';
+        endDate.value = '';
+        loadArticles();
+      });
+      
+      // Поиск при нажатии Enter
+      titleSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchArticles();
+      });
+    });
+  </script>
+</body>
+</html>

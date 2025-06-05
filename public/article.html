@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Просмотр статьи</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .article-container {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .article-title {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .article-meta {
+      color: #7f8c8d;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    .article-content {
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    .tag {
+      background: #e0f7fa;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .reviews-title {
+      margin-top: 30px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .review {
+      border: 1px solid #eee;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .review-meta {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+    }
+    .rating {
+      color: #f39c12;
+      font-weight: bold;
+    }
+    .actions {
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .back-btn {
+      background: #3498db;
+      color: white;
+    }
+    .edit-btn {
+      background: #2ecc71;
+      color: white;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+    }
+    .add-review-form {
+      margin-top: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+    }
+    .submit-btn {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background: #219653;
+    }
+    .new-article-form {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="article-container" class="article-container"></div>
+  <div id="new-article-form" class="new-article-form" style="display: none;">
+    <h2>Создать новую статью</h2>
+    <form id="articleForm">
+      <div class="form-group">
+        <label for="title">Название:</label>
+        <input type="text" id="title" required>
+      </div>
+      <div class="form-group">
+        <label for="authors">Авторы (разделяйте запятыми):</label>
+        <input type="text" id="authors" required>
+      </div>
+      <div class="form-group">
+        <label for="content">Содержание:</label>
+        <textarea id="content" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="publishDate">Дата публикации:</label>
+        <input type="date" id="publishDate" required>
+      </div>
+      <button type="submit" class="submit-btn">Сохранить</button>
+    </form>
+  </div>
+  
+  <div class="actions">
+    <a href="/" class="btn back-btn"><i class="fas fa-arrow-left"></i> Назад</a>
+    <button id="editBtn" class="btn edit-btn" style="display: none;"><i class="fas fa-edit"></i> Редактировать</button>
+    <button id="deleteBtn" class="btn delete-btn" style="display: none;"><i class="fas fa-trash"></i> Удалить</button>
+  </div>
+
+  <script>
+    // Получаем ID статьи из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
+    const isNew = urlParams.get('new') === 'true';
+    
+    // DOM элементы
+    const articleContainer = document.getElementById('article-container');
+    const newArticleForm = document.getElementById('new-article-form');
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const articleForm = document.getElementById('articleForm');
+    
+    // Если создание новой статьи
+    if (isNew) {
+      newArticleForm.style.display = 'block';
+      articleContainer.style.display = 'none';
+      editBtn.style.display = 'none';
+      deleteBtn.style.display = 'none';
+      
+      // Установка текущей даты по умолчанию
+      document.getElementById('publishDate').valueAsDate = new Date();
+      
+      // Обработка отправки формы
+      articleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const articleData = {
+          title: document.getElementById('title').value,
+          authors: document.getElementById('authors').value.split(',').map(a => a.trim()),
+          content: document.getElementById('content').value,
+          publishDate: document.getElementById('publishDate').value,
+          tags: [],
+          reviews: []
+        };
+        
+        try {
+          const response = await fetch('/api/articles', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(articleData)
+          });
+          
+          if (response.ok) {
+            const article = await response.json();
+            window.location.href = `/article.html?id=${article._id}`;
+          } else {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка при создании статьи');
+          }
+        } catch (err) {
+          alert(`Ошибка: ${err.message}`);
+        }
+      });
+      
+      
+    }
+    
+    // Загрузка статьи
+    async function loadArticle() {
+      try {
+        const response = await fetch(`/api/articles/${articleId}`);
+        if (!response.ok) {
+          throw new Error('Статья не найдена');
+        }
+        const article = await response.json();
+        displayArticle(article);
+        
+        // Показываем кнопки редактирования и удаления
+        editBtn.style.display = 'inline-block';
+        deleteBtn.style.display = 'inline-block';
+        
+        // Обработчики для кнопок
+        editBtn.addEventListener('click', () => {
+          window.location.href = `/edit-article.html?id=${articleId}`;
+        });
+        
+        deleteBtn.addEventListener('click', async () => {
+          if (confirm('Вы уверены, что хотите удалить эту статью?')) {
+            try {
+              const response = await fetch(`/api/articles/${articleId}`, {
+                method: 'DELETE'
+              });
+              
+              if (response.ok) {
+                window.location.href = '/';
+              } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Ошибка при удалении статьи');
+              }
+            } catch (err) {
+              alert(`Ошибка: ${err.message}`);
+            }
+          }
+        });
+      } catch (err) {
+        articleContainer.innerHTML = `<p style="color: red;">Ошибка: ${err.message}</p>`;
+      }
+    }
+    
+    // Отображение статьи
+    function displayArticle(article) {
+      const averageRating = article.reviews && article.reviews.length > 0 
+        ? (article.reviews.reduce((acc, review) => acc + review.rating, 0) / article.reviews.length).toFixed(1)
+        : 'Нет оценок';
+      
+      articleContainer.innerHTML = `
+        <h1 class="article-title">${article.title}</h1>
+        <div class="article-meta">
+          <p><strong>Авторы:</strong> ${article.authors.join(', ')}</p>
+          <p><strong>Дата публикации:</strong> ${new Date(article.publishDate).toLocaleDateString()}</p>
+          <p><strong>Средний рейтинг:</strong> ${averageRating}</p>
+        </div>
+        <div class="tags">
+          ${article.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+        </div>
+        <div class="article-content">
+          ${article.content}
+        </div>
+        <h3 class="reviews-title">Рецензии (${article.reviews ? article.reviews.length : 0})</h3>
+        ${article.reviews && article.reviews.length > 0 
+          ? article.reviews.map(review => `
+            <div class="review">
+              <div class="review-meta">
+                <strong>${review.userName}</strong> - <span class="rating">Оценка: ${review.rating}</span>
+              </div>
+              <p>${review.text}</p>
+            </div>
+          `).join('')
+          : '<p>Пока нет рецензий</p>'}
+      `;
+    }
+    
+    // Загружаем статью при загрузке страницы
+    if (articleId) {
+      loadArticle();
+    } else if (!isNew) {
+      articleContainer.innerHTML = '<p>Статья не найдена</p>';
+    }
+  </script>
+</body>
+</html>
