@@ -1,17 +1,24 @@
+// Импорт библиотеки Mongoose для работы с MongoDB
 const mongoose = require('mongoose');
 
+// Создание схемы (структуры) для модели Tag (тег)
 const TagSchema = new mongoose.Schema({
+  // Поле "name" - название тега
   name: {
-    type: String,
-    required: [true, 'Пожалуйста, укажите название тега'],
-    unique: true,
-    trim: true,
-    maxlength: [50, 'Название тега не может превышать 50 символов']
+    type: String, // Тип данных - строка
+    required: [true, 'Пожалуйста, укажите название тега'], // Обязательное поле с сообщением об ошибке
+    unique: true, // Уникальное значение (не может быть дубликатов)
+    trim: true, // Автоматическое удаление пробелов в начале и конце строки
+    maxlength: [50, 'Название тега не может превышать 50 символов'] // Максимальная длина с сообщением об ошибке
   },
+
+  // Поле "createdAt" - дата создания тега
   createdAt: {
-    type: Date,
-    default: Date.now
+    type: Date, // Тип данных - дата
+    default: Date.now // Значение по умолчанию - текущая дата и время
   }
 });
 
+// Экспорт модели Tag на основе созданной схемы
+// Модель будет доступна в других файлах через require('./Tag')
 module.exports = mongoose.model('Tag', TagSchema);
